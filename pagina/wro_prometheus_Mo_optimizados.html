@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROMETHEUS TEAM - Diagrama de Lógica y Estados WRO</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              cyan: '#00f2fe',
+              blue: '#3b82f6',
+              orange: '#f97316',
+              amber: '#f59e0b',
+              purple: '#a855f7',
+              emerald: '#10b981',
+              rose: '#f43f5e',
+              dark: '#070a12',
+              card: '#0f172a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Node highlight animations */
+    .node-active {
+      border-color: #00f2fe !important;
+      background-color: rgba(0, 242, 254, 0.12) !important;
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .node-emergency {
+      border-color: #f43f5e !important;
+      background-color: rgba(244, 63, 94, 0.15) !important;
+      box-shadow: 0 0 22px rgba(244, 63, 94, 0.5);
+      animation: pulse-danger 1s infinite alternate;
+    }
+
+    @keyframes pulse-danger {
+      from { box-shadow: 0 0 10px rgba(244, 63, 94, 0.3); }
+      to { box-shadow: 0 0 25px rgba(244, 63, 94, 0.7); }
+    }
+
+    /* Connector line active glow */
+    .line-active {
+      stroke: #00f2fe !important;
+      stroke-width: 3.5 !important;
+      filter: drop-shadow(0px 0px 6px #00f2fe);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #070a12;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00f2fe;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col bg-brand-dark text-slate-100 antialiased selection:bg-cyan-500 selection:text-black">
+
+  <!-- HEADER BRANDING -->
+  <header class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur sticky top-0 z-50 px-5 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+    <div class="flex items-center space-x-3.5">
+      <div class="bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-cyan-500/20">
+        <i class="fa-solid fa-microchip text-2xl text-slate-950"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-extrabold tracking-widest px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-mono">
+            WRO FUTURE ENGINEERS 2026
+          </span>
+          <span class="text-[10px] font-extrabold tracking-widest px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30 font-mono">
+            CATEGORÍA AUTÓNOMA
+          </span>
+        </div>
+        <h1 class="text-xl font-extrabold tracking-tight text-white flex items-center gap-2 mt-0.5">
+          PROMETHEUS TEAM <span class="text-slate-500 text-sm font-semibold">| Arquitectura Lógica de Esquives Optimizados</span>
+        </h1>
+      </div>
+    </div>
+
+    <!-- LANE DEFINITION BADGES -->
+    <div class="flex items-center gap-3 text-xs">
+      <div class="bg-slate-900 border border-blue-500/30 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-sm">
+        <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-500"></span>
+        <span class="text-slate-300 font-semibold">Carril Interior:</span>
+        <span class="text-blue-400 font-mono text-[11px]">Pegado al centro de la pista</span>
+      </div>
+      <div class="bg-slate-900 border border-orange-500/30 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-sm">
+        <span class="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm shadow-orange-500"></span>
+        <span class="text-slate-300 font-semibold">Carril Exterior:</span>
+        <span class="text-orange-400 font-mono text-[11px]">Alejado del centro (Pared externa)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 p-5 max-w-[1920px] w-full mx-auto">
+
+    <!-- LEFT PANEL: CONTROL MATRIX & LIVE TELEMETRY (4 Cols) -->
+    <section class="lg:col-span-4 flex flex-col gap-5">
+
+      <!-- SCENARIO & MATRIX CONTROL -->
+      <div class="bg-brand-card border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-cyan-400"></i> Configuración de Tramo
+          </h2>
+          <span class="text-xs font-mono text-cyan-400 bg-cyan-950/80 border border-cyan-800 px-2.5 py-1 rounded-lg">
+            contadorLineas ≥ 5
+          </span>
+        </div>
+
+        <!-- Input Selectors -->
+        <div class="space-y-3.5 text-xs">
+          <div>
+            <label class="block text-slate-400 mb-1.5 font-semibold">
+              <i class="fa-solid fa-right-from-line text-blue-400 mr-1"></i> Carril Final Tramo Anterior (Origen):
+            </label>
+            <select id="sel-origen" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl p-2.5 font-medium focus:border-cyan-500 focus:outline-none transition">
+              <option value="INTERIOR">Carril INTERIOR (Pegado al Centro)</option>
+              <option value="EXTERIOR">Carril EXTERIOR (Alejado del Centro)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-slate-400 mb-1.5 font-semibold">
+              <i class="fa-solid fa-right-to-line text-orange-400 mr-1"></i> Carril Inicial Comando Sig. (Destino):
+            </label>
+            <select id="sel-destino" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl p-2.5 font-medium focus:border-cyan-500 focus:outline-none transition">
+              <option value="INTERIOR">Carril INTERIOR (Pegado al Centro)</option>
+              <option value="EXTERIOR">Carril EXTERIOR (Alejado del Centro)</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-400 mb-1.5 font-semibold">Sentido Vehículo</label>
+              <select id="sel-sentido" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl p-2.5 font-medium focus:border-cyan-500 focus:outline-none">
+                <option value="IZQUIERDA">IZQUIERDA (-90°)</option>
+                <option value="DERECHA">DERECHA (+90°)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1.5 font-semibold">Comando Especial 'E'</label>
+              <select id="sel-comando-e" class="w-full bg-slate-950 border border-slate-800 text-slate-200 rounded-xl p-2.5 font-medium focus:border-cyan-500 focus:outline-none">
+                <option value="NO">Normal</option>
+                <option value="SI">Incluye 'E' (Entrada Ext.)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Strategy Output Box -->
+        <div id="decision-summary" class="bg-slate-950 border border-cyan-500/40 rounded-xl p-4 flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-microchip"></i> Patrón Seleccionado
+            </span>
+            <span id="badge-pattern-type" class="text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+              PATRÓN A
+            </span>
+          </div>
+          <p id="txt-strategy-desc" class="text-xs text-slate-300 leading-relaxed font-normal">
+            Cálculo dinámico en ejecución...
+          </p>
+        </div>
+
+        <!-- Simulation Control Buttons -->
+        <div class="grid grid-cols-2 gap-2.5 pt-1">
+          <button id="btn-run-sim" class="col-span-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-extrabold py-2.5 px-3 rounded-xl shadow-lg shadow-cyan-500/25 transition flex items-center justify-center gap-2 text-xs">
+            <i class="fa-solid fa-play"></i> Iniciar Flujo
+          </button>
+          <button id="btn-step-sim" class="col-span-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 text-xs">
+            <i class="fa-solid fa-forward-step"></i> Paso a Paso
+          </button>
+        </div>
+      </div>
+
+      <!-- LIVE TELEMETRY & VARIABLE MONITOR -->
+      <div class="bg-brand-card border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col gap-3">
+        <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-200 flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="flex items-center gap-2"><i class="fa-solid fa-gauge-high text-amber-400"></i> Variables de Estado en Vivo</span>
+          <span id="txt-current-phase" class="text-xs font-mono font-bold text-cyan-400">IDLE</span>
+        </h2>
+
+        <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <span class="text-slate-500 text-[10px] block mb-1">Fase Maniobra (`FaseManiobraOptimizada`)</span>
+            <span id="var-fase" class="text-cyan-400 font-bold text-sm block truncate">MO_IDLE</span>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <span class="text-slate-500 text-[10px] block mb-1">Ángulo Dirección Servo (`mo_anguloServo`)</span>
+            <span id="var-servo" class="text-emerald-400 font-bold text-sm block">0° (CENTRO)</span>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <span class="text-slate-500 text-[10px] block mb-1">ToF Frontal (`tofF`)</span>
+            <span id="var-tof" class="text-amber-400 font-bold text-sm block">120 cm</span>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <span class="text-slate-500 text-[10px] block mb-1">Tiempo Retroceso Ajustado</span>
+            <span id="var-tiempo-retro" class="text-purple-400 font-bold text-sm block">0 ms</span>
+          </div>
+        </div>
+
+        <!-- Emergency Obstacle Toggle -->
+        <button id="btn-toggle-obstacle" class="mt-1 w-full bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation"></i> Simular Interrupción: Obstáculo en Cruce (Sharp &lt; 15cm)
+        </button>
+      </div>
+
+      <!-- LOG CONSOLE -->
+      <div class="bg-brand-card border border-slate-800 rounded-2xl p-4 flex flex-col h-48 shadow-2xl">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold font-mono text-slate-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-terminal text-emerald-400"></i> Event Log / Consola Serial
+          </span>
+          <button id="btn-clear-log" class="text-[10px] text-slate-500 hover:text-slate-300 transition">Limpiar</button>
+        </div>
+        <div id="log-console" class="bg-slate-950 border border-slate-900 rounded-xl p-3 flex-1 overflow-y-auto font-mono text-[11px] space-y-1.5 text-slate-300">
+          <div class="text-slate-500">[00:00:00] PROMETHEUS OS v3.2 Inicializado. Esperando activación de flujo.</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT PANEL: INTERACTIVE STATE MACHINE FLOWCHART (8 Cols) -->
+    <section class="lg:col-span-8 bg-brand-card border border-slate-800 rounded-2xl p-6 shadow-2xl flex flex-col justify-between relative overflow-x-auto">
+      
+      <!-- FLOWCHART TITLE & LEGEND -->
+      <div class="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-6">
+        <div>
+          <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+            <i class="fa-solid fa-diagram-project text-cyan-400"></i> Esquema de Estados y Transiciones
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Conexión de decisiones autónomas del vehículo tras completar la memorización de pista.</p>
+        </div>
+        <div class="flex items-center gap-3 text-xs font-mono">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-cyan-500/20 border border-cyan-400"></span> Decisión</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-purple-500/20 border border-purple-400"></span> Accionador Servo</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-400"></span> Final</span>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE FLOWCHART NODES GRID -->
+      <div class="relative min-w-[700px] flex-1 flex flex-col justify-between py-2 space-y-6">
+
+        <!-- LAYER 1: TRIGGER & CONDITION CHECK -->
+        <div class="flex justify-center">
+          <div id="node-start" class="w-80 bg-slate-950 border border-slate-800 p-3.5 rounded-2xl text-center transition duration-300 relative group">
+            <div class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest"> CONDICIÓN DE ENTRADA</div>
+            <div class="font-bold text-xs text-cyan-300 my-1 font-mono">
+              memorizacionCompleta && contadorLineas ≥ 5
+            </div>
+            <div class="text-[11px] text-slate-400">Activa el motor de maniobras optimizadas no bloqueante.</div>
+          </div>
+        </div>
+
+        <!-- LAYER 2: PAUSA PRE-MANIOBRA & DECISION NODE -->
+        <div class="grid grid-cols-2 gap-8 max-w-2xl mx-auto w-full">
+          <div id="node-pausa-pre" class="bg-slate-950 border border-slate-800 p-3.5 rounded-2xl text-center transition duration-300">
+            <div class="text-[10px] font-mono font-bold text-slate-500 uppercase">FASE PRE-MANIOBRA</div>
+            <div class="font-bold text-xs text-amber-300 my-1">MO_PAUSA_PRE_MANIOBRA</div>
+            <div class="text-[11px] text-slate-400">Estabiliza inercia del vehículo (`MO_DURACION_PAUSA_PRE`).</div>
+          </div>
+
+          <div id="node-decision-matrix" class="bg-slate-950 border border-cyan-500/40 p-3.5 rounded-2xl text-center transition duration-300 bg-cyan-950/10">
+            <div class="text-[10px] font-mono font-bold text-cyan-400 uppercase">MATRIZ DE DECISIÓN</div>
+            <div class="font-bold text-xs text-white my-1 font-mono">mo_usarPatronRetrocesoAvance</div>
+            <div class="text-[11px] text-slate-300">Evalúa combinación (Carril Origen vs Carril Destino)</div>
+          </div>
+        </div>
+
+        <!-- LAYER 3: BRANCHES (PATRÓN A vs PATRÓN B) -->
+        <div class="grid grid-cols-2 gap-8 w-full">
+          
+          <!-- BRANCH A: PATRÓN A (RETROCESO Y GIRO INMEDIATO) -->
+          <div class="border border-purple-500/30 rounded-2xl p-4 bg-purple-950/10 flex flex-col space-y-4 relative">
+            <div class="flex items-center justify-between border-b border-purple-500/20 pb-2">
+              <span class="text-xs font-extrabold text-purple-400 font-mono">RAMAL A: PATRÓN A</span>
+              <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-mono">Giro Inmediato con Retroceso</span>
+            </div>
+
+            <!-- A1: Enderezando -->
+            <div id="node-a-enderezando" class="bg-slate-950 border border-slate-800 p-3 rounded-xl transition duration-300">
+              <div class="text-[10px] font-mono text-slate-500">ESTADO 1.A</div>
+              <div class="font-bold text-xs text-purple-300">MO_ENDEREZANDO</div>
+              <div class="text-[11px] text-slate-400 mt-1">Alinea rumbo previo (`mo_controlarDireccionEnderezado`).</div>
+            </div>
+
+            <!-- A2: Retroceso Ajustado -->
+            <div id="node-a-retroceso" class="bg-slate-950 border border-slate-800 p-3 rounded-xl transition duration-300">
+              <div class="text-[10px] font-mono text-slate-500">ESTADO 2.A</div>
+              <div class="font-bold text-xs text-purple-300">MO_RETROCESO_CORTO / LARGO</div>
+              <div class="text-[11px] text-slate-400 mt-1">
+                • Interior &rarr; Interior: <strong>Corto (~300ms)</strong><br>
+                • Exterior &rarr; Interior: <strong>Largo (~1400ms)</strong><br>
+                <span class="text-purple-400 font-mono text-[10px]">Ajustado restando tiempo de enderezado</span>
+              </div>
+            </div>
+
+            <!-- A3: Pausa tras retroceso -->
+            <div id="node-a-pausa" class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-center text-xs text-slate-400">
+              <span class="text-amber-300 font-mono font-bold">MO_PAUSA_TRAS_RETROCESO</span> (Estabilización)
+            </div>
+          </div>
+
+          <!-- BRANCH B: PATRÓN B (AVANCE HASTA TOF) -->
+          <div class="border border-amber-500/30 rounded-2xl p-4 bg-amber-950/10 flex flex-col space-y-4 relative">
+            <div class="flex items-center justify-between border-b border-amber-500/20 pb-2">
+              <span class="text-xs font-extrabold text-amber-400 font-mono">RAMAL B: PATRÓN B</span>
+              <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono">Avance hasta ToF</span>
+            </div>
+
+            <!-- B1: Enderezando -->
+            <div id="node-b-enderezando" class="bg-slate-950 border border-slate-800 p-3 rounded-xl transition duration-300">
+              <div class="text-[10px] font-mono text-slate-500">ESTADO 1.B</div>
+              <div class="font-bold text-xs text-amber-300">MO_ENDEREZANDO</div>
+              <div class="text-[11px] text-slate-400 mt-1">Alinea rumbo previo manteniéndose en carril.</div>
+            </div>
+
+            <!-- B2: Avance ToF -->
+            <div id="node-b-tof" class="bg-slate-950 border border-slate-800 p-3 rounded-xl transition duration-300">
+              <div class="text-[10px] font-mono text-slate-500">ESTADO 2.B</div>
+              <div class="font-bold text-xs text-amber-300">MO_AVANZANDO_HASTA_TOF</div>
+              <div class="text-[11px] text-slate-400 mt-1">
+                • Interior &rarr; Exterior: Hasta <strong class="text-amber-300">40 cm</strong><br>
+                • Exterior &rarr; Exterior: Hasta <strong class="text-amber-300">40 cm / 70 cm ('E')</strong>
+              </div>
+            </div>
+
+            <!-- B3: Pausa tras ToF -->
+            <div id="node-b-pausa" class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-center text-xs text-slate-400">
+              <span class="text-amber-300 font-mono font-bold">MO_PAUSA_TRAS_TOF</span> (Estabilización)
+            </div>
+          </div>
+
+        </div>
+
+        <!-- LAYER 4: CONVERGENCE - CRUCE & SAFETY CHECK -->
+        <div class="grid grid-cols-2 gap-8 w-full">
+          
+          <!-- Node: Cruce de Servo -->
+          <div id="node-cruzando" class="col-span-1 bg-slate-950 border border-slate-800 p-3.5 rounded-2xl transition duration-300">
+            <div class="text-[10px] font-mono font-bold text-slate-500 uppercase">FASE CONVERGENTE: GIRO</div>
+            <div class="font-bold text-xs text-cyan-300 my-1">MO_CRUZANDO</div>
+            <div class="text-[11px] text-slate-400">Gira servo a máximo ángulo objetivo (`SERVO_LEFT` / `SERVO_RIGHT`).</div>
+          </div>
+
+          <!-- Node: Safety Emergency Monitor -->
+          <div id="node-emergencia" class="col-span-1 bg-slate-950 border border-rose-500/40 p-3.5 rounded-2xl transition duration-300 bg-rose-950/10">
+            <div class="text-[10px] font-mono font-bold text-rose-400 uppercase">MONITOR DE SEGURIDAD (INTERRUPCIÓN)</div>
+            <div class="font-bold text-xs text-rose-300 my-1">MONITOREO DE OBSTÁCULO</div>
+            <div class="text-[11px] text-slate-300">Si Sharp Diag. &lt; 15cm: Interrumpe, retrocede centrado/cruzado y reanuda.</div>
+          </div>
+
+        </div>
+
+        <!-- LAYER 5: FINALIZADA -->
+        <div class="flex justify-center pt-2">
+          <div id="node-finalizada" class="w-96 bg-slate-950 border border-emerald-500/40 p-3.5 rounded-2xl text-center transition duration-300 bg-emerald-950/10">
+            <div class="text-[10px] font-mono font-bold text-emerald-400 uppercase">RETORNO AL SISTEMA</div>
+            <div class="font-bold text-xs text-emerald-300 my-1">MO_FINALIZADA</div>
+            <div class="text-[11px] text-slate-300">Restablece tolerancias de detección de línea y pasa a <strong class="text-emerald-400">MANTENIENDO_CARRIL</strong>.</div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- LOGIC & SIMULATION ENGINE -->
+  <script>
+    // --- STATE MACHINE ENUM ---
+    const FASES = {
+      IDLE: 'IDLE',
+      PAUSA_PRE: 'MO_PAUSA_PRE_MANIOBRA',
+      DECISION: 'EVALUANDO_PATRON',
+      // Ramal A
+      A_ENDEREZANDO: 'MO_A_ENDEREZANDO',
+      A_RETROCESO: 'MO_RETROCESO',
+      A_PAUSA: 'MO_PAUSA_RETROCESO',
+      // Ramal B
+      B_ENDEREZANDO: 'MO_B_ENDEREZANDO',
+      B_TOF: 'MO_AVANZANDO_HASTA_TOF',
+      B_PAUSA: 'MO_PAUSA_TOF',
+      // Convergente
+      CRUZANDO: 'MO_CRUZANDO',
+      EMERGENCIA: 'MO_EMERGENCIA_OBSTACULO',
+      FINALIZADA: 'MO_FINALIZADA'
+    };
+
+    let estadoActual = FASES.IDLE;
+    let patronCalculado = 'PATRON_A'; // PATRON_A or PATRON_B
+    let obstaculoForzado = false;
+
+    // UI Element References
+    const elOrigen = document.getElementById('sel-origen');
+    const elDestino = document.getElementById('sel-destino');
+    const elSentido = document.getElementById('sel-sentido');
+    const elComandoE = document.getElementById('sel-comando-e');
+
+    const elDesc = document.getElementById('txt-strategy-desc');
+    const elBadgePatron = document.getElementById('badge-pattern-type');
+    const elConsole = document.getElementById('log-console');
+
+    // Telemetry Elements
+    const elVarFase = document.getElementById('var-fase');
+    const elVarServo = document.getElementById('var-servo');
+    const elVarTof = document.getElementById('var-tof');
+    const elVarTiempoRetro = document.getElementById('var-tiempo-retro');
+    const elCurrentPhase = document.getElementById('txt-current-phase');
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      calcularEstrategia();
+
+      elOrigen.addEventListener('change', calcularEstrategia);
+      elDestino.addEventListener('change', calcularEstrategia);
+      elSentido.addEventListener('change', calcularEstrategia);
+      elComandoE.addEventListener('change', calcularEstrategia);
+
+      document.getElementById('btn-run-sim').addEventListener('click', iniciarFlujoCompleto);
+      document.getElementById('btn-step-sim').addEventListener('click', darPasoSimulacion);
+      document.getElementById('btn-clear-log').addEventListener('click', () => elConsole.innerHTML = '');
+      document.getElementById('btn-toggle-obstacle').addEventListener('click', toggleObstaculoSimulado);
+    });
+
+    // --- STRATEGY DECISION MATRIX ---
+    function calcularEstrategia() {
+      const origen = elOrigen.value;
+      const destino = elDestino.value;
+      const sentido = elSentido.value;
+      const comandoE = elComandoE.value;
+
+      // Reset state if editing settings
+      resetearFlujo();
+
+      if (origen === 'INTERIOR' && destino === 'INTERIOR') {
+        // REGLA 1: Interior -> Interior => Patrón A (Retroceso Corto)
+        patronCalculado = 'PATRON_A';
+        elBadgePatron.innerText = 'PATRÓN A (Retroceso Corto)';
+        elBadgePatron.className = 'text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40';
+        elDesc.innerText = 'Interior -> Interior: Aplica Giro Inmediato con Retroceso Corto (~300ms) para acomodar la geometría del vehículo antes de cruzar al carril interior.';
+      } else if (origen === 'EXTERIOR' && destino === 'INTERIOR') {
+        // REGLA 2: Exterior -> Interior => Patrón A (Retroceso Largo)
+        patronCalculado = 'PATRON_A';
+        elBadgePatron.innerText = 'PATRÓN A (Retroceso Largo)';
+        elBadgePatron.className = 'text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40';
+        elDesc.innerText = 'Exterior -> Interior: Aplica Giro Inmediato con Retroceso Largo (~1400ms) para retroceder desde la pared exterior y tener espacio para enganchar el carril interior.';
+      } else if (origen === 'INTERIOR' && destino === 'EXTERIOR') {
+        // REGLA 3: Interior -> Exterior => Patrón B (Avance ToF 40cm)
+        patronCalculado = 'PATRON_B';
+        elBadgePatron.innerText = 'PATRÓN B (Avance ToF 40cm)';
+        elBadgePatron.className = 'text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+        elDesc.innerText = 'Interior -> Exterior: Aplica Avance hasta ToF (40cm). El robot avanza enderezado en el carril interior antes de realizar el cruce abierto al carril exterior.';
+      } else if (origen === 'EXTERIOR' && destino === 'EXTERIOR') {
+        // REGLA 4: Exterior -> Exterior => Patrón B (Avance ToF 40cm / 70cm con 'E')
+        patronCalculado = 'PATRON_B';
+        const distToF = comandoE === 'SI' ? '70cm' : '40cm';
+        elBadgePatron.innerText = `PATRÓN B (Avance ToF ${distToF})`;
+        elBadgePatron.className = 'text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+        elDesc.innerText = `Exterior -> Exterior: Aplica Avance hasta ToF (${distToF}). Avanza por la pared exterior sensando distancia frontal para posicionar la nariz del robot antes de girar al nuevo carril exterior.`;
+      }
+
+      logConsola(`Matriz de Decisión Corregida: Origen=${origen}, Destino=${destino}, Sentido=${sentido} => ${patronCalculado}`, 'cyan');
+    }
+
+    // --- NODE HIGHLIGHTING LOGIC ---
+    function limpiarNodos() {
+      const todosLosNodos = [
+        'node-start', 'node-pausa-pre', 'node-decision-matrix',
+        'node-a-enderezando', 'node-a-retroceso', 'node-a-pausa',
+        'node-b-enderezando', 'node-b-tof', 'node-b-pausa',
+        'node-cruzando', 'node-emergencia', 'node-finalizada'
+      ];
+      todosLosNodos.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove('node-active', 'node-emergency');
+        }
+      });
+    }
+
+    function activarNodo(nodeId, esEmergencia = false) {
+      limpiarNodos();
+      if (nodeId) {
+        const el = document.getElementById(nodeId);
+        if (el) {
+          el.classList.add(esEmergencia ? 'node-emergency' : 'node-active');
+        }
+      }
+    }
+
+    // --- LOGGING UTILITY ---
+    function logConsola(msg, tipo = 'normal') {
+      const time = new Date().toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      
+      let cls = 'text-slate-300';
+      if (tipo === 'cyan') cls = 'text-cyan-400 font-semibold';
+      if (tipo === 'amber') cls = 'text-amber-400 font-semibold';
+      if (tipo === 'purple') cls = 'text-purple-400 font-semibold';
+      if (tipo === 'warn') cls = 'text-rose-400 font-bold';
+      if (tipo === 'success') cls = 'text-emerald-400 font-bold';
+
+      div.className = cls;
+      div.innerText = `[${time}] ${msg}`;
+      elConsole.appendChild(div);
+      elConsole.scrollTop = elConsole.scrollHeight;
+    }
+
+    function resetearFlujo() {
+      estadoActual = FASES.IDLE;
+      obstaculoForzado = false;
+      limpiarNodos();
+      
+      elVarFase.innerText = 'MO_IDLE';
+      elVarServo.innerText = '0° (CENTRO)';
+      elVarTof.innerText = '120 cm';
+      elVarTiempoRetro.innerText = '0 ms';
+      elCurrentPhase.innerText = 'EN ESPERA';
+    }
+
+    // --- STATE MACHINE STEPPER ---
+    function darPasoSimulacion() {
+      switch (estadoActual) {
+        case FASES.IDLE:
+          estadoActual = FASES.PAUSA_PRE;
+          activarNodo('node-pausa-pre');
+          elVarFase.innerText = 'MO_PAUSA_PRE_MANIOBRA';
+          elCurrentPhase.innerText = 'PAUSA PREVIA';
+          logConsola('>> Activación: Condición cumplicada (contadorLineas >= 5). Entrando a Pausa Pre-maniobra.', 'cyan');
+          break;
+
+        case FASES.PAUSA_PRE:
+          estadoActual = FASES.DECISION;
+          activarNodo('node-decision-matrix');
+          elVarFase.innerText = 'EVALUANDO_MATRIZ';
+          elCurrentPhase.innerText = 'MATRIZ DECISIÓN';
+          logConsola(`>> Evaluando Carriles: ${elOrigen.value} -> ${elDestino.value}. Seleccionado: ${patronCalculado}`, 'cyan');
+          break;
+
+        case FASES.DECISION:
+          if (patronCalculado === 'PATRON_A') {
+            estadoActual = FASES.A_ENDEREZANDO;
+            activarNodo('node-a-enderezando');
+            elVarFase.innerText = 'MO_ENDEREZANDO';
+            elVarServo.innerText = '0° (ALINEADO)';
+            elCurrentPhase.innerText = 'RAMAL A: ENDEREZANDO';
+            logConsola('>> Ramal A: Enderezando rumbo previo del vehículo.', 'purple');
+          } else {
+            estadoActual = FASES.B_ENDEREZANDO;
+            activarNodo('node-b-enderezando');
+            elVarFase.innerText = 'MO_ENDEREZANDO';
+            elVarServo.innerText = '0° (ALINEADO)';
+            elCurrentPhase.innerText = 'RAMAL B: ENDEREZANDO';
+            logConsola('>> Ramal B: Enderezando rumbo previo antes de avance ToF.', 'amber');
+          }
+          break;
+
+        case FASES.A_ENDEREZANDO:
+          estadoActual = FASES.A_RETROCESO;
+          activarNodo('node-a-retroceso');
+          
+          const esInterior = elOrigen.value === 'INTERIOR';
+          const tBase = esInterior ? 300 : 1400;
+          const tEnderezado = 80; // Tiempo simulado en enderezar
+          const tAjustado = Math.max(50, tBase - tEnderezado);
+
+          elVarFase.innerText = esInterior ? 'MO_RETROCESO_CORTO' : 'MO_RETROCESO_LARGO';
+          elVarTiempoRetro.innerText = `${tAjustado} ms`;
+          elCurrentPhase.innerText = 'RAMAL A: RETROCESO';
+          logConsola(`>> Retrocediendo en línea recta. Duración ajustada: ${tAjustado}ms (Base: ${tBase}ms - Enderezado: ${tEnderezado}ms)`, 'purple');
+          break;
+
+        case FASES.A_RETROCESO:
+          estadoActual = FASES.A_PAUSA;
+          activarNodo('node-a-pausa');
+          elVarFase.innerText = 'MO_PAUSA_TRAS_RETROCESO';
+          elCurrentPhase.innerText = 'ESTABILIZANDO';
+          logConsola('>> Pausa de estabilización tras retroceso completada.', 'purple');
+          break;
+
+        case FASES.B_ENDEREZANDO:
+          estadoActual = FASES.B_TOF;
+          activarNodo('node-b-tof');
+          
+          const targetToF = (elDestino.value === 'EXTERIOR' || elComandoE.value === 'SI') ? 70 : 40;
+          elVarFase.innerText = 'MO_AVANZANDO_HASTA_TOF';
+          elVarTof.innerText = `${targetToF} cm (OBJETIVO ALCANZADO)`;
+          elCurrentPhase.innerText = 'RAMAL B: SENSANDO TOF';
+          logConsola(`>> Avanzando con control de rumbo hasta detectar ToF Frontal = ${targetToF}cm.`, 'amber');
+          break;
+
+        case FASES.B_TOF:
+          estadoActual = FASES.B_PAUSA;
+          activarNodo('node-b-pausa');
+          elVarFase.innerText = 'MO_PAUSA_TRAS_TOF';
+          elCurrentPhase.innerText = 'ESTABILIZANDO';
+          logConsola('>> Pausa tras avance ToF completada.', 'amber');
+          break;
+
+        case FASES.A_PAUSA:
+        case FASES.B_PAUSA:
+          if (obstaculoForzado) {
+            estadoActual = FASES.EMERGENCIA;
+            activarNodo('node-emergencia', true);
+            elVarFase.innerText = 'MO_EMERGENCIA_OBSTACULO';
+            elCurrentPhase.innerText = '¡ALERTA OBSTÁCULO!';
+            logConsola('! [SEGURIDAD] Obstáculo detectado por Sharp Diag. (<15cm). Interrumpiendo cruce y retrocediendo de emergencia.', 'warn');
+          } else {
+            estadoActual = FASES.CRUZANDO;
+            activarNodo('node-cruzando');
+            const sentido = elSentido.value;
+            const anguloServo = sentido === 'IZQUIERDA' ? '-30° (SERVO_LEFT)' : '+30° (SERVO_RIGHT)';
+            elVarFase.innerText = 'MO_CRUZANDO';
+            elVarServo.innerText = anguloServo;
+            elCurrentPhase.innerText = 'EJECUTANDO CRUCE';
+            logConsola(`>> Cruzando esquina. Servo acoplado a fondo hacia: ${sentido}`, 'cyan');
+          }
+          break;
+
+        case FASES.EMERGENCIA:
+          obstaculoForzado = false;
+          estadoActual = FASES.CRUZANDO;
+          activarNodo('node-cruzando');
+          const sentido = elSentido.value;
+          elVarFase.innerText = 'MO_CRUZANDO';
+          elVarServo.innerText = sentido === 'IZQUIERDA' ? '-30° (SERVO_LEFT)' : '+30° (SERVO_RIGHT)';
+          elCurrentPhase.innerText = 'REANUDANDO CRUCE';
+          logConsola('>> Liberado obstáculo de seguridad. Reanudando cruce de dirección.', 'cyan');
+          break;
+
+        case FASES.CRUZANDO:
+          estadoActual = FASES.FINALIZADA;
+          activarNodo('node-finalizada');
+          elVarFase.innerText = 'MO_FINALIZADA';
+          elVarServo.innerText = '0° (CENTRO)';
+          elCurrentPhase.innerText = 'MANIOBRA FINALIZADA';
+          logConsola('>> [MO_FINALIZADA] Maniobra concluida exitosamente. Tolerancias de línea reajustadas. Retornando a MANTENIENDO_CARRIL.', 'success');
+          break;
+
+        case FASES.FINALIZADA:
+          resetearFlujo();
+          logConsola('>> Ciclo completado. Listo para nueva maniobra.', 'cyan');
+          break;
+      }
+    }
+
+    function iniciarFlujoCompleto() {
+      resetearFlujo();
+      let timer = setInterval(() => {
+        darPasoSimulacion();
+        if (estadoActual === FASES.FINALIZADA || estadoActual === FASES.IDLE) {
+          clearInterval(timer);
+        }
+      }, 900);
+    }
+
+    function toggleObstaculoSimulado() {
+      obstaculoForzado = true;
+      logConsola('! Interrupción por obstáculo armado. Se activará antes de ejecutar el cruce.', 'warn');
+    }
+  </script>
+</body>
+</html>
